@@ -17,6 +17,7 @@ class CheckoutResource extends JsonResource
         return [
             'id' => $this['id'],
             'status' => $this['status'],
+            'billingType' => $this['billingType'],
             'pixQrCode' => $this['pixQrCode'] ?? null,
         ];
     }

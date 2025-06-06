@@ -20,6 +20,8 @@ class CheckoutRequest extends FormRequest
      */
     public function rules(): array
     {
+        $creditCardRequired = Rule::requiredIf(fn () => $this->billingType === BillingTypeEnum::CREDIT_CARD->value);
+
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email'],
@@ -30,14 +32,14 @@ class CheckoutRequest extends FormRequest
             'billingType' => ['required', 'string', Rule::in(BillingTypeEnum::toArray())],
             'value' => ['required', 'numeric', 'min:0.01'],
             'creditCard' => [
-                Rule::requiredIf(fn () => $this->billingType === BillingTypeEnum::CREDIT_CARD->value),
+                $creditCardRequired,
                 'array:holderName,number,expiryMonth,expiryYear,ccv'
             ],
-            'creditCard.holderName' => ['required', 'string', 'max:255'],
-            'creditCard.number' => ['required', 'string', 'regex:/^\d{16}$/'],
-            'creditCard.expiryMonth' => ['required', 'numeric', 'between:1,12'],
-            'creditCard.expiryYear' => ['required', 'numeric', 'digits:4'],
-            'creditCard.ccv' => ['required', 'string', 'regex:/^\d{3,4}$/'],
+            'creditCard.holderName' => [$creditCardRequired, 'string', 'max:255'],
+            'creditCard.number' => [$creditCardRequired, 'string', 'regex:/^\d{16}$/'],
+            'creditCard.expiryMonth' => [$creditCardRequired, 'string', 'digits:2'],
+            'creditCard.expiryYear' => [$creditCardRequired, 'string', 'digits:4'],
+            'creditCard.ccv' => [$creditCardRequired, 'string', 'regex:/^\d{3,4}$/'],
         ];
     }
 

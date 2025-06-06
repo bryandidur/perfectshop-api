@@ -16,5 +16,3 @@
 
 ### Setup Docker containers (Wait some minutes for the containers to be ready and log stops)
 #### `./vendor/bin/sail up`
-
-#### (GO TO ANOTHER TERMINAL TAB)

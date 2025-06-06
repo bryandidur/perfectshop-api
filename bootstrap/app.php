@@ -12,7 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        $middleware->group('api', [
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\SetJsonRequestHeaders::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
