@@ -6,11 +6,13 @@ use Exception;
 use App\Contracts\GatewayService as GatewayServiceContract;
 use App\Dtos\Checkout\CheckoutDto;
 use App\Enums\BillingTypeEnum;
+use App\Exceptions\PaymentException;
 use Illuminate\Http\Client\{
     ConnectionException,
     PendingRequest,
     RequestException,
 };
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\{
     Http,
     Log,
@@ -40,7 +42,7 @@ class AsaasGatewayService implements GatewayServiceContract
     {
         $payment = $this->createPayment($dto);
 
-        if ($dto->billingType === BillingTypeEnum::PIX) {
+        if ($dto->billingType !== BillingTypeEnum::CREDIT_CARD) {
             $payment['pixQrCode'] = $this->getPixQrCode($payment['id']);
         }
 
@@ -84,12 +86,19 @@ class AsaasGatewayService implements GatewayServiceContract
             return $payment;
         } catch (Exception $e) {
             Log::error('Error creating payment in Asaas: ' . $e->getMessage());
-            throw $e;
+
+            if ($e instanceof RequestException) {
+                if ($e->response->status() === Response::HTTP_BAD_REQUEST) {
+                    throw new PaymentException(data_get($e->response->json(), 'errors.0.description', 'Erro desconhecido. Tente novamente.'));
+                }
+            } else {
+                throw $e;
+            }
         }
     }
 
     /**
-     * Get the QR code for a Pix payment.
+     * Get the QR code for a payment.
      *
      * @param string $paymentId
      * @return string
